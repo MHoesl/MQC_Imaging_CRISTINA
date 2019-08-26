@@ -26,20 +26,22 @@ NTEs_ex = zeros(1,length(NTEs)+1);
 NTEs_ex(1,2:end) = NTEs;
 timeVec_0 = NTEs_ex;
 
+timeVec_interpol = linspace(min(NTEs_ex),max(NTEs_ex),10*length(NTEs_ex));
 
 %         Start values, upper and lower bounds
-%            A_TQ ,                 T2slow   , T2fast,  offset, 
+%            A_TQ ,                 T2long   , T2short,  offset, 
 x0_tq    = [ 1,                        20  ,   4    ,  0.0 ];
-lb_tq    = [ 0,                        10  ,   0    , -1 ];
-ub_tq    = [ 20.0,                     40  ,   10   ,  1 ]; 
-%              A_SQslow, A_SQfast,   T2slow  , T2fast
+lb_tq    = [ 0,                        10  ,   2    , -1 ];
+ub_tq    = [ 20.0,                     35  ,   35   ,  1 ]; 
+%              A_SQslow, A_SQfast,   T2long  , T2short
 y0_sq      = [ 0.6      , 0.4 ,       20   ,   4      ,  0.0  ];
-y_lb_sq    = [ 0.6      , 0.0 ,       10   ,   0       , -1 ];
-y_ub_sq    = [ 60       , 40  ,       40   ,   40      ,  1 ];
+y_lb_sq    = [ 0.0      , 0.0 ,       10    ,   2       , -1 ];
+y_ub_sq    = [ 60       , 40  ,       35   ,   35      ,  1 ];
 
 % fit functions 
 % **************************************************************************** 
 fitfunction_TQ = @(x)  x(:,1).*((exp(-timeVec_0./x(:,2)) - exp(-timeVec_0./x(:,3))).*(exp(-t1/x(:,2)) -  exp(-t1/x(:,3))).*exp(-t2/x(:,2))) + x(:,4); 
+
 fitfunction_SQ = @(y) (y(:,1).*exp(-(timeVec+t1+t2)./y(:,3))   +  y(:,2).*exp(-(timeVec+t1+t2)./y(:,4))) + y(:,5);
 
 
@@ -56,8 +58,10 @@ fileID_SQ = fopen('SQresult_cistina_fit.txt','w');
 fileID_TQ = fopen('TQresult_cistina_fit.txt','w');
 
 
-for x_VOX = 1:1:NCol  
-    for y_VOX = 1:1:NLin 
+% for x_VOX = 1:1:NCol  
+%     for y_VOX = 1:1:NLin 
+for x_VOX = 69:1:69 
+    for y_VOX = 52:1:52
         
 
         if ( squeeze(BodyMask(x_VOX,y_VOX,:)) == 1 )
@@ -82,7 +86,7 @@ for x_VOX = 1:1:NCol
             % IV: do the TQ fit
             %****************************************************************************
             TQ_problem = createOptimProblem('fmincon','objective',myfit_L2_norm_TQ,'x0',x0_tq,'lb',lb_tq,'ub',ub_tq,'options',opts);
-            gs = GlobalSearch('MaxTime',10,'NumTrialPoints',500, 'NumStageOnePoints',50);
+            gs = GlobalSearch('MaxTime',10,'NumTrialPoints',500, 'NumStageOnePoints',100);
             [xtq,fmin_tq] = run(gs,TQ_problem);
 
             
@@ -103,8 +107,8 @@ for x_VOX = 1:1:NCol
             SQ_normval_im(x_VOX,y_VOX,:)  = normvalueSQ;
             TQ_normval_im(x_VOX,y_VOX,:)  = normvalueTQ;
             
-            fprintf(fileID_TQ,'%12.8f', xtq); fprintf(fileID_TQ,'%d',x_VOX);fprintf(fileID_TQ,'%d',y_VOX);fprintf(fileID_TQ,'%12.8f',normvalueTQ);fprintf(fileID_TQ,'\n');
-            fprintf(fileID_SQ,'%12.8f', xsq); fprintf(fileID_TQ,'%d',x_VOX);fprintf(fileID_TQ,'%d',y_VOX);fprintf(fileID_SQ,'%12.8f',normvalueSQ);fprintf(fileID_SQ,'\n');
+            fprintf(fileID_TQ,'%12.8f', xtq); fprintf(fileID_TQ,'%d',x_VOX);fprintf(fileID_TQ,' ');fprintf(fileID_TQ,'%d',y_VOX);fprintf(fileID_TQ,'%12.8f',normvalueTQ);fprintf(fileID_TQ,'\n');
+            fprintf(fileID_SQ,'%12.8f', xsq); fprintf(fileID_SQ,'%d',x_VOX);fprintf(fileID_SQ,' ');fprintf(fileID_SQ,'%12.8f',normvalueSQ);fprintf(fileID_SQ,'\n');
              
             SQFittedData(x_VOX,y_VOX,:) = fitfunction_SQ(xsq).*normvalueSQ;
             TQFittedData(x_VOX,y_VOX,:) = fitfunction_TQ(xtq).*normvalueTQ;
@@ -112,6 +116,15 @@ for x_VOX = 1:1:NCol
             % extrapolate the TE = 0ms value for the SQ image:
             function_SQ = (xsq(1).*exp(-(timeVec_0+t1+t2)./xsq(3))  +  xsq(2).*exp(-(timeVec_0+t1+t2)./xsq(4))) + xsq(5);
             SQFittedData_0TEms(x_VOX,y_VOX,:) = function_SQ.*normvalueSQ;
+            
+            %fit data at intermediate time points
+            
+            
+            function_SQ_int = (xsq(1).*exp(-(timeVec_interpol+t1+t2)./xsq(3))  +  xsq(2).*exp(-(timeVec_interpol+t1+t2)./xsq(4))) + xsq(5);
+            function_TQ_int =  xtq(1).*((exp(-timeVec_interpol./xtq(2)) - exp(-timeVec_interpol./xtq(3))).*(exp(-t1/xtq(2)) -  exp(-t1/xtq(3))).*exp(-t2/xtq(2))) + xtq(4); 
+
+            SQFittedData_interpol(x_VOX,y_VOX,:) = function_SQ_int.*normvalueSQ;
+            TQFittedData_interpol(x_VOX,y_VOX,:) = function_TQ_int.*normvalueTQ;
             
             x0 = xsq; % update Startvalue of fit
         end
