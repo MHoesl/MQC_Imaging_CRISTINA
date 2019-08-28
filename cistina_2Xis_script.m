@@ -89,13 +89,11 @@ hold on;plot(imag(squeeze(myimage_zf_Xi0(VOI(1,1),VOI(2,1),1,:))),'.--r')
 [Imagesignal_Xi90,Imagespec_Xi90] = reco_cistina(myimage_zf_Xi90, NLin,NCol, NRep,length(NTEs));
 [Imagesignal_Xi0 ,Imagespec_Xi0]  = reco_cistina(myimage_zf_Xi0, NLin,NCol, NRep,length(NTEs));
 
-
-%as(spectroscopic_im)
-View4D(abs(Imagespec_Xi90(:,:,:,:)))
+%View4D(abs(Imagespec_Xi90(:,:,:,:)))
 %View4D(abs(Imagespec_Xi0(:,:,:,:)))
 
 
-%% 3. cistina SQ DQ TQ images:
+% cistina SQ DQ TQ images
 
 %frequencies vector:
 nyquist = (360/ph_inc)/2;
@@ -119,13 +117,13 @@ DQ_image_Xi0 = abs(Imagespec_Xi0(:,:,:,p_DQl)) + abs(Imagespec_Xi0(:,:,:,p_DQr))
 TQ_image_Xi0 = abs(Imagespec_Xi0(:,:,:,p_TQl)) + abs(Imagespec_Xi0(:,:,:,p_TQr));
 
 
-as(TQ_image_Xi90,'ColorMap','parula')
-as(DQ_image_Xi90,'ColorMap','parula')
-as(SQ_image_Xi90,'ColorMap','parula')
-
-as(TQ_image_Xi0,'ColorMap','parula')
-as(DQ_image_Xi0,'ColorMap','parula')
-as(SQ_image_Xi0,'ColorMap','parula')
+% as(TQ_image_Xi90,'ColorMap','parula')
+% as(DQ_image_Xi90,'ColorMap','parula')
+% as(SQ_image_Xi90,'ColorMap','parula')
+% 
+% as(TQ_image_Xi0,'ColorMap','parula')
+% as(DQ_image_Xi0,'ColorMap','parula')
+% as(SQ_image_Xi0,'ColorMap','parula')
 
 
 %% 1. Make Body Mask
@@ -152,11 +150,12 @@ for l = 1:1:length(NTEs)
 end
 
 as(SQ_images_Xi90m,'ColorMap','parula')
-as(DQ_images_Xi90m,'ColorMap','parula')
-as(TQ_images_Xi90m,'ColorMap','parula')
-
 as(SQ_images_Xi0m,'ColorMap','parula')
+
+as(DQ_images_Xi90m,'ColorMap','parula')
 as(DQ_images_Xi0m,'ColorMap','parula')
+
+as(TQ_images_Xi90m,'ColorMap','parula')
 as(TQ_images_Xi0m,'ColorMap','parula')
 
 
@@ -172,16 +171,37 @@ as(TQ_images_Xi0m,'ColorMap','parula')
 PhaseImage_TE1 = atan(imag(myimage_zf_Xi90(:,:,1,2))./real(myimage_zf_Xi90(:,:,1,2)));
 PhaseImage_TE3 = atan(imag(myimage_zf_Xi90(:,:,3,2))./real(myimage_zf_Xi90(:,:,3,2)));
 
-% conventionally 
-B0map = (PhaseImage_TE1-PhaseImage_TE3) / (2*pi*(NTEs(3)-NTEs(1))*1e-3);
+as(PhaseImage_TE1)
+as(PhaseImage_TE3)
+
+%% unwrap first phase image, if neccessary:
+Npoints_of_visible_wraps = 5;
+kernelsize = 4;
+threshold = 0.7;
+Im1_unwr = myunwrap_1stImage(PhaseImage_TE1, Npoints_of_visible_wraps, kernelsize,threshold,BodyMask);
+as(Im1_unwr)
+%%
+Npoints_of_visible_wraps = 9;
+kernelsize = 6;
+
+Im2_unwr =  myunwrap(PhaseImage_TE1, PhaseImage_TE3, BodyMask,Npoints_of_visible_wraps ,threshold,kernelsize);
+as(Im2_unwr)
 
 
+%% conventionally 
+B0map = (Im1_unwr-Im2_unwr) / (2*pi*(NTEs(3)-NTEs(1))*1e-3);
 B0map_m = B0map.* BodyMask;
 as(B0map_m)
 
-%%
-%Spec_sum_of_squares_reco  = sqrt(Imagespec_Xi0.^2 + Imagespec_Xi90.^2);
-%View4D(abs(Spec_sum_of_squares_reco),'ColorMap',parula)
+as(B0map)
+
+%% Alternative unwrapping procedure
+
+gammaRatio = 11.262 / 42.57747892;
+data=myimage_zf_Xi90(:,:,:,2);
+[params, sse] = presco(NTEs*1e-3,data,gammaRatio*6.95);
+
+
 
 
 %% Fleysher Reco using the B0 offset value of the B0 map
@@ -225,29 +245,27 @@ as(TQ_image_total,'ColorMap','parula')
 
 %% Multiparametric Fit
 
-%about 70min
 
 tic
-[SQFittedData_zf,TQFittedData_zf,...
-    SQFittedData_0TEms_zf,...
-    SQ_fitresult_vector_im,...
-    TQ_fitresult_vector_im,...
-    SQ_normval_im_zf,...
-    TQ_normval_im_zf, NTEs_ex] = fit_cistina(SQ_image_total,TQ_image_total, NTEs,EvoTimeInit,MixTime,NCol,NLin,BodyMask);
-
+[SQFitImage,TQFitImage,...
+    SQFitImage_0TEms,...
+    SQFitImage_subsampled,TQFitImage_subsampled,...
+    SQFitImage_neg, ...
+    SQ_fitresult_maps,TQ_fitresult_maps,...
+    SQ_NormvalImage,TQ_NormvalImage,NTEs_ex]  = fit_cistina(SQ_image_total,TQ_image_total, NTEs,EvoTimeInit,MixTime,NCol,NLin,BodyMask);
 toc
 
 
 TQ_images_0TEms = zeros(NCol,NLin,length(NTEs)+1);
 TQ_images_0TEms(:,:,2:end) = TQ_image_total;
 
-% T2 Maps:
-as(SQ_fitresult_vector_im,'ColorMap','Parula')
-as(TQ_fitresult_vector_im,'ColorMap','Parula')
+% Maps:
+as(SQ_fitresult_maps,'ColorMap','Parula')
+as(TQ_fitresult_maps,'ColorMap','Parula')
 
 % fitted MQC images:
-as(SQFittedData_0TEms_zf,'ColorMap','Parula')
-as(TQ_images_0TEms,'ColorMap','Parula')
+as(SQFitImage,'ColorMap','Parula')
+as(TQFitImage,'ColorMap','Parula')
 
 
 ratio = zeros(x_VOX,y_VOX);
@@ -259,6 +277,63 @@ for x_VOX = 1:1:NCol
         end 
     end
 end
+
+%% TSC
+
+concV1 = 154; concV2 = 100;
+
+
+masksV1 = sodiumMasks( SQFittedData_0TEms_zf, 1); %154mM
+masksV2 = sodiumMasks( SQFittedData_0TEms_zf, 1); %100mM
+
+[ naImageTSC, refFit ] = sodiumTSCmap( SQFittedData_0TEms_zf, masksV1, masksV2, concV1, concV2);
+
+as(naImageTSC,'ColorMap','Parula')
+
+%%  Intensity versus mM concentration
+
+Sumimage = SQFittedData_0TEms_zf+TQFittedData_zf;
+
+%myimage = SQFittedData_0TEms_zf;
+myimage = Sumimage;
+list_of_concentrations = [154,100,154,130, 154,50, 100, 100];
+NTubes = length(list_of_concentrations);
+
+figure;hold on
+for i = 1:1:NTubes
+    mask = sodiumMasks( myimage, 1);
+    foregroundValues = myimage(mask);
+    Values_mean(i,:)=mean(foregroundValues);
+    Values_std(i,:)=std(foregroundValues);
+    
+    errorbar(list_of_concentrations(i),Values_mean(i),Values_std(i))
+    text(list_of_concentrations(i),Values_mean(i),num2str(i),'Color','b')
+end
+
+hold on
+plot(list_of_concentrations,Values_mean,'kx')
+
+
+%% TQ Agar concentration
+
+myimage = TQFittedData_zf(:,:,6);
+list_of_agarvalues = [0,5,4,2,5,4,4,2];
+NTubes = length(list_of_agarvalues);
+
+figure;hold on
+for i = 1:1:NTubes
+    mask = sodiumMasks( myimage, 1);
+    foregroundValues = myimage(mask);
+    TQValues_mean(i,:)=mean(foregroundValues);
+    TQValues_std(i,:)=std(foregroundValues);
+    
+    errorbar(list_of_agarvalues(i),TQValues_mean(i),TQValues_std(i))
+    text(list_of_agarvalues(i),TQValues_mean(i),num2str(i),'Color','b')
+end
+
+hold on
+plot(list_of_agarvalues,TQValues_mean,'kx')
+
 
 
 %% select Voxels of Interest:
@@ -317,6 +392,15 @@ end
 
 
 %% Look at spectra for specific voxels
+pnts_cycle = 360/ph_inc;
+pnts = size(Imagespec_Xi90,4);
+NCycles = pnts/pnts_cycle;
+
+nyq_cycle = pnts/2; 
+f= linspace(-nyq_cycle,+nyq_cycle,floor(pnts));
+
+
+
 figure; hold on;
 for i = 1:1:N
     yi =  VOIs(1,i);
@@ -324,23 +408,49 @@ for i = 1:1:N
     
     vec = squeeze(Imagespec_Xi90(xi,yi,5,:));
     
-    plot(abs(vec)./max(abs(vec)));
+    plot((f/NCycles),abs(vec)./max(abs(vec)));
 end
+
+
 
 ylabel({'amplitude [a.u]'}); xlabel({'n \cdot \omega'});
 set(gca,'FontName','Arial','FontSize',14,'XTick',[-6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6]);
 hold on;legend('1','2','3','4','5','6','7','8');
 
 %% Look at spectra for specific voxels along TE
-for i = 1:1:N
+for i = 5:1:5 %N
     yi =  VOIs(1,i);
     xi =  VOIs(2,i);
-    as(squeeze(Imagespec_Xi90(xi,yi,:,:)),'ColorMap','parula');
+    
+    as(squeeze(abs(Imagespec_Xi90(xi,yi,:,:))),'ColorMap','parula');
+    as(squeeze(abs(Imagespec_Xi0(xi,yi,:,:))),'ColorMap','parula');
+    
+    as(squeeze(abs(Spec_plus(xi,yi,:,:))),'ColorMap','parula');
+    as(squeeze(abs(Spec_minus(xi,yi,:,:))),'ColorMap','parula');
+    
+    as(squeeze(abs(Spec_image_total(xi,yi,:,:))),'ColorMap','parula');
+    
 end
 
 
 
+%% Quantification
+ 
+sliceCell{1}    = 1 ;
 
+slices          = sliceCell{1} ;
+textName = 'Sodium';
+% Define Masks for Reference Vial 1
+positionROI = [5, 5, 5, 5 ] ;
+textTitle   = 'Please mark Reference Vial 1 (154 mM Na, 0% Agar)!' ;
+masksV1 = sodiumMasks( SQFittedData_0TEms_zf(:,:,1), slices, textName, textTitle, positionROI ) ;
+% Define Masks for Reference Vial 2
+textTitle   = 'Please mark Reference Vial 2 (100 mmol/l Na, 4 % Agar)!' ;
+masksV2 = sodiumMasks( SQFittedData_0TEms_zf(:,:,1), slices, textName, textTitle, positionROI ) ;
+
+for i = 1:length(NTEs)
+    [ TSC(:,:,i), refFit(i) ]  = sodiumTSCmap( SQFittedData_0TEms_zf(:,:,i), masksV1, masksV2, 154, 100 ) ;
+end
 
 
 %%
