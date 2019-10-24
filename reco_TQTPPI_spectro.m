@@ -26,13 +26,24 @@ Sequence_length_min    = (max(timestamp) - min(timestamp))*2.5/1000/60;
 
 NCha = twix.image.NCha;
 NCol = twix.image.NCol;
+NAcq = twix.image.NAcq;
 fid_data = twix.image(:,:,:,:,:,:,:,:,:,:);
-Rep = size(fid_data,10);
-NAcq = size(fid_data,9);
 
 
-fid_data = squeeze(fid_data); %fid_datasize = size(fid_data);
   
+Rep = size(fid_data,10);
+fid_data = squeeze(fid_data); %fid_datasize = size(fid_data);
+
+
+
+%for 7T two channel coil:
+if NCha == 2
+    fid_data = fid_data(:,2,:);
+    NCha = 1;
+    fid_data = squeeze(fid_data);
+end
+
+
 
 NPhaseCycles = NAcq/(NPhaseSteps*2);
 
@@ -158,10 +169,12 @@ elseif NCha >=1
                 myspectra_maxima = max(abs(myspectra_1stDim));
 
 
-                maximum_position = zeros(size(myspectra_maxima));
-                for i = 1:1:size(myspectra_1stDim,2)
-                     maximum_position(1,i) = find(  abs(myspectra_1stDim(:,i)) == myspectra_maxima(1,i)  ); 
-                end
+%                 maximum_position = zeros(size(myspectra_maxima));
+%                 for i = 1:1:size(myspectra_1stDim,2)
+%                      maximum_position(1,i) = find(  abs(myspectra_1stDim(:,i)) == myspectra_maxima(1,i)  ); 
+%                 end
+                
+                maximum_position = find(  abs(myspectra_1stDim(:,1)) == myspectra_maxima(1,1)  );
 
                 % individual maxima of spec, gives not a better result, further effects ...
                 % take maximum of the first spec.
