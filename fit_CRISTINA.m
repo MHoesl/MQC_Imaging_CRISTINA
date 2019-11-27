@@ -6,11 +6,13 @@
 %
 % ******************************************************************************
 
-function [SQFitImage,TQFitImage,...
+function [TQFitImage,...
     SQFitImage_0TEms,...
-    SQFitImage_subsampled,TQFitImage_subsampled,...
-    SQFitImage_neg, ...
-    SQ_fitresult_maps,TQ_fitresult_maps,SQ_NormvalImage,TQ_NormvalImage,NTEs_ex,timeVec_negative,timeVec_interpol] = fit_CRISTINA(SQ_Images_masked,TQ_Images_masked, NTEs,EvoTimeInit,MixTime,NCol,NLin,BodyMask)
+    SQFitImage_subsampled,
+    TQFitImage_subsampled,...
+    SQ_fitresult_maps,TQ_fitresult_maps,...
+    SQ_NormvalImage,TQ_NormvalImage,...
+    NTEs_ex,timeVec_interpol] = fit_CRISTINA(SQ_Images_masked,TQ_Images_masked, NTEs,EvoTimeInit,MixTime,NCol,NLin,BodyMask)
 
 
 
@@ -38,12 +40,12 @@ timeVec_interpol = linspace(min(NTEs_ex),max(NTEs_ex),10*length(NTEs_ex));
 % Start values, upper and lower bounds
 %            A_TQ ,                 T2long   , T2short,  offset, 
 x0_tq    = [ 1,                        20  ,   4    ,  0.0 ];
-lb_tq    = [ 0,                        10  ,   2    , -1 ];
-ub_tq    = [ 20.0,                     30  ,   30   ,  1 ]; 
+lb_tq    = [ 0,                        10  ,   0    , -1 ];
+ub_tq    = [ 20.0,                     30  ,   10   ,  1 ]; 
 %              A_SQslow, A_SQfast,   T2long  , T2short
 y0_sq      = [ 0.6      , 0.4 ,       20   ,   4      ,  0.0  ];
-y_lb_sq    = [ 0.0      , 0.0 ,       15    ,  1e-5       , -1 ];
-y_ub_sq    = [ 100       , 100  ,     30   ,   30      ,  1 ];
+y_lb_sq    = [ 0.0      , 0.0 ,       10    ,  0       , -1 ];
+y_ub_sq    = [ 100       , 100  ,     30   ,   10      ,  1 ];
 
 
 % fit functions 
@@ -93,7 +95,7 @@ for x_VOX =1:1:NCol
             % IV: do the TQ fit
             %****************************************************************************
             TQ_problem = createOptimProblem('fmincon','objective',myfit_L2_norm_TQ,'x0',x0_tq,'lb',lb_tq,'ub',ub_tq,'options',opts);
-            gs = GlobalSearch('MaxTime',10,'NumTrialPoints',500, 'NumStageOnePoints',100);
+            gs = GlobalSearch('MaxTime',10,'NumTrialPoints',800, 'NumStageOnePoints',200);
             [xtq,fmin_tq] = run(gs,TQ_problem);
 
             
@@ -151,8 +153,6 @@ SQFitImage(end:NCol,end:NLin,:)=0;
 SQFitImage_subsampled(end:NCol,end:NLin,:)=0;
 TQFitImage_subsampled(end:NCol,end:NLin,:)=0;
 
-
-SQFitImage_neg(end:NCol,end:NLin,:)=0;
 
 SQFitImage_0TEms((size(SQFitImage_0TEms,1)):NCol,(size(SQFitImage_0TEms,1)):NLin,:) = 0;
 
