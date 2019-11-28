@@ -18,8 +18,8 @@ The code corresponds to the results presented in:  # MRM-19-20481.R1.
   https://github.com/marcsous/unwrap/commits/master
   commit:50dac46f9295f108e41a5e86c879c5932ba60f47
   
-  - for visualization the following toolbox is nice and the function as.m was used:
-    https://github.com/tsumpf/arrShow 
+- for visualization the following toolbox is nice and the function as.m was used:
+  https://github.com/tsumpf/arrShow 
   
 
 
