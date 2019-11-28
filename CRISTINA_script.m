@@ -16,7 +16,7 @@ watch = false;
 pst = 360/ph_inc;
 
 ksz=size(mykspace0_Xi0);
-l=length(TEs_ms);
+l=length(NTEs_ms);
 mykspace0_Xi0_rs =mean(reshape(mykspace0_Xi0,[ksz(1:2)  l  pst ksz(4)/pst]),5);
 mykspace0_Xi90_rs=mean(reshape(mykspace0_Xi90,[ksz(1:2) l pst ksz(4)/pst]),5);
 pocs_TE=11;  % pocs fails for later echoes due to low SNR
@@ -40,17 +40,16 @@ k_0fill = 2;
 myimage_Xi90 = fft2c(mykspace_Xi90); 
 myimage_Xi0  = fft2c(mykspace_Xi0); 
 
-%clear mykspace0_Xi90_pocs mykspace0_Xi90_rs mykspace0_Xi90 mykspace0_Xi0_pocs mykspace0_Xi0_rs mykspace0_Xi0 imPocs_Xi90 imPocs_Xi0 i j ksz NAve NCha pocs_lastecho0 pocs_lastecho90 watch Xi
 
 %% GetMQ
-[SQ,TQ,B0,imask,SQ_TE,TQ_TE,ZQ_TE] = CRISTINA_getMQC(myimage_Xi0,myimage_Xi90,TEs_ms);
+[SQ,TQ,B0,imask,SQ_TE,TQ_TE,ZQ_TE] = CRISTINA_getMQC(myimage_Xi0,myimage_Xi90,NTEs_ms);
 
 as(cat(3,TQ,SQ,(TQ./SQ).*imask), 'ColorMap', 'Parula')
 
 as(B0)
 %% Fleysher Reco using the B0 offset value of the B0 map
 [SQ_Fl,TQ_Fl, SQ_TE_Fl,TQ_TE_Fl,ZQ_TE_Fl,...
-  SQXi90,TQXi90,SQXi0,TQXi0] = CRISTINA_getFleysherMQC(myimage_Xi0,myimage_Xi90,TEs_ms,B0,EvoT0);
+  SQXi90,TQXi90,SQXi0,TQXi0] = CRISTINA_getFleysherMQC(myimage_Xi0,myimage_Xi90,NTEs_ms,B0,EvoTimeInit);
 
 as(cat(3,TQ_Fl,SQ_Fl,(TQ_Fl./SQ_Fl).*imask), 'ColorMap', 'Parula');
 as(cat(3, mean(TQXi90(:,:,3:7),3),mean(TQXi0(:,:,3:7),3)), 'ColorMap', 'Parula')
