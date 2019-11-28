@@ -6,19 +6,8 @@
 % Michaela Hösl
 
 
-if (NAve == 2 && NCha == 2) %first channel is 1H, second is 23Na
-    mykspace0_Xi90 = permute(rawdata_Xi90,[1 3 4 2 5]);  % x y NAve NCha NRep
-    mykspace0_Xi0 = permute(rawdata_Xi0,[1 3 4 2 5]);
-    % 7T Marseille double tuned head coil: 5dim: [x  y  TEs  Na_1H_Chan
-    % datapoints], wanted 4 dimensions for [x y TEs datapoints]
-elseif length(size(rawdata_Xi90)) > 4 
-    mykspace0_Xi90 = rawdata_Xi90(:,:,:,2,:); mykspace0_Xi90 = permute(mykspace0_Xi90,[1 2 3 5 4]);
-    mykspace0_Xi0 =  rawdata_Xi0(:,:,:,2,:);   mykspace0_Xi0 = permute(mykspace0_Xi0,[1 2 3 5 4]);
-else
-    mykspace0_Xi90 = rawdata_Xi90;
-    mykspace0_Xi0 = rawdata_Xi0;
-end
-
+mykspace0_Xi90 = rawdata_Xi90;
+mykspace0_Xi0 = rawdata_Xi0;
 
 
 %% POCS for asymmetric k-space reco instead of 0 fill:
