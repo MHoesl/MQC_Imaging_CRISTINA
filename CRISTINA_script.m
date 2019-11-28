@@ -54,3 +54,11 @@ as(B0)
 as(cat(3,TQ_Fl,SQ_Fl,(TQ_Fl./SQ_Fl).*imask), 'ColorMap', 'Parula');
 as(cat(3, mean(TQXi90(:,:,3:7),3),mean(TQXi0(:,:,3:7),3)), 'ColorMap', 'Parula')
 
+
+%% Fit Results
+[SQFitImage_0TEms,TQFitImage,...
+SQFitImage_subsampled,TQFitImage_subsampled,...
+SQ_fitresult_maps,TQ_fitresult_maps,...
+SQ_NormvalImage,TQ_NormvalImage,NTEs_ex,timeVec_interpol] = fit_CRISTINA(SQ_TE_Fl,TQ_TE_Fl, NTEs_ms,EvoT0,MixTime,NCol,NLin,imask);
+
+
