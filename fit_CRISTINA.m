@@ -1,39 +1,29 @@
 %% *****************************************************************************
 %
 %
-%                       Do the fit on the whole image
+%                       MQC CRISTINA Fit for whole image
 %
 %
 % ******************************************************************************
 
-function [TQFitImage,...
-    SQFitImage_0TEms,...
-    SQFitImage_subsampled,
-    TQFitImage_subsampled,...
-    SQ_fitresult_maps,TQ_fitresult_maps,...
-    SQ_NormvalImage,TQ_NormvalImage,...
-    NTEs_ex,timeVec_interpol] = fit_CRISTINA(SQ_Images_masked,TQ_Images_masked, NTEs,EvoTimeInit,MixTime,NCol,NLin,BodyMask)
-
+function[SQFitImage_0TEms,TQFitImage,...
+SQFitImage_subsampled,TQFitImage_subsampled,...
+SQ_fitresult_maps,TQ_fitresult_maps,...
+SQ_NormvalImage,TQ_NormvalImage,timeVec_0,timeVec_interpol]  = fit_CRISTINA(SQ_Images,TQ_Images,timeVec,t1,t2,NCol,NLin,BodyMask)
 
 
 SQ_fitresult_maps = zeros(NCol,NLin,5); 
 TQ_fitresult_maps = zeros(NCol,NLin,4);
 
 
-t1= EvoTimeInit; t2= MixTime; 
-timeVec = NTEs; 
-
-
 %TQ-images add zero signal at TE = 0;
-TQ_images_ext = zeros(NCol,NLin,length(NTEs)+1);
-TQ_images_ext(:,:,2:end) = TQ_Images_masked;
+TQ_images_ext = zeros(NCol,NLin,length(timeVec)+1);
+TQ_images_ext(:,:,2:end) = TQ_Images;
 
 
-NTEs_ex = zeros(1,length(NTEs)+1);
-NTEs_ex(1,2:end) = NTEs;
-timeVec_0 = NTEs_ex;
-
-timeVec_interpol = linspace(min(NTEs_ex),max(NTEs_ex),10*length(NTEs_ex));
+timeVec_0 = zeros(1,length(timeVec)+1);
+timeVec_0(1,2:end) = timeVec;
+timeVec_interpol = linspace(min(timeVec_0),max(timeVec_0),10*length(timeVec_0));
 
 
 
@@ -70,12 +60,12 @@ fileID_TQ = fopen('TQresult_cistina_fit.txt','w');
 
 
 for x_VOX =1:1:NCol  
-     for y_VOX = 1:1:NLin 
+     for y_VOX = 1:1:NLin
         
 
         if ( squeeze(BodyMask(x_VOX,y_VOX,:)) == 1 )
            
-            voxeldataSQ  = permute(SQ_Images_masked(x_VOX,y_VOX,:),[3 2 1]);
+            voxeldataSQ  = permute(SQ_Images(x_VOX,y_VOX,:),[3 2 1]);
             normvalueSQ   = max(voxeldataSQ);
             voxeldataSQ_n = voxeldataSQ./normvalueSQ;
 
@@ -85,7 +75,7 @@ for x_VOX =1:1:NCol
             
             
 
-            % III. objective function
+            % III. objective function 
             %****************************************************************************
             myfit_L2_norm_TQ = @(x) sum((voxeldataTQ_n - fitfunction_TQ(x)').^2); %has to be one value!
             myfit_L2_norm_SQ = @(y) sum((voxeldataSQ_n - fitfunction_SQ(y)').^2); %has to be one value!
@@ -154,12 +144,13 @@ SQFitImage_subsampled(end:NCol,end:NLin,:)=0;
 TQFitImage_subsampled(end:NCol,end:NLin,:)=0;
 
 
+SQFitImage_neg(end:NCol,end:NLin,:)=0;
+
 SQFitImage_0TEms((size(SQFitImage_0TEms,1)):NCol,(size(SQFitImage_0TEms,1)):NLin,:) = 0;
 
 
 SQ_NormvalImage((size(SQ_NormvalImage,1)):NCol,(size(SQ_NormvalImage,1)):NLin,:) = 0;
 TQ_NormvalImage((size(TQ_NormvalImage,1)):NCol,(size(TQ_NormvalImage,1)):NLin,:) = 0;
-
 
 
 %filename_all = 'myfitresult_CRISTINA.mat';
