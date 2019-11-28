@@ -29,13 +29,13 @@ timeVec_interpol = linspace(min(timeVec_0),max(timeVec_0),10*length(timeVec_0));
 
 % Start values, upper and lower bounds
 %            A_TQ ,                 T2long   , T2short,  offset, 
-x0_tq    = [ 1,                        20  ,   4    ,  0.0 ];
+x0_tq    = [ 2,                        20  ,   2    ,  0.0 ];
 lb_tq    = [ 0,                        10  ,   0    , -1 ];
-ub_tq    = [ 20.0,                     30  ,   10   ,  1 ]; 
+ub_tq    = [ 20.0,                     40  ,   10   ,  1 ]; 
 %              A_SQslow, A_SQfast,   T2long  , T2short
-y0_sq      = [ 0.6      , 0.4 ,       20   ,   4      ,  0.0  ];
+y0_sq      = [ 6        , 4 ,       20   ,   2      ,  0.0  ];
 y_lb_sq    = [ 0.0      , 0.0 ,       10    ,  0       , -1 ];
-y_ub_sq    = [ 100       , 100  ,     30   ,   10      ,  1 ];
+y_ub_sq    = [ 200      , 200  ,     40   ,   10      ,  1 ];
 
 
 % fit functions 
@@ -99,7 +99,12 @@ for x_VOX =1:1:NCol
             SQ_problem = createOptimProblem('fmincon','objective', myfit_L2_norm_SQ,'x0',y0_sq,'lb',y_lb_sq,'ub',y_ub_sq,'options',opts);
 
             [xsq,fmin_sq] = run(gs,SQ_problem);
-
+            xsq(1) = xsq(1).*normvalueSQ;
+            xsq(2) = xsq(2).*normvalueSQ;
+            xsq(5) = xsq(5).*normvalueSQ;
+            
+            xtq(1) = xtq(1).*normvalueTQ;
+            xtq(4) = xtq(4).*normvalueTQ;
 
             
             % store the fit of the voxel
