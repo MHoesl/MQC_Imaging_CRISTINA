@@ -6,7 +6,7 @@ Multi-quantum sodium imaging offers additional insights compared to standard sin
 
 The code corresponds to the results presented in:  # MRM-19-20481.R1.
 
-## The following tools are neccessary:
+## The following additional tools are neccessary:
 - ff2c.m function of the SparseMRI V0.2 toolbox from:
   https://people.eecs.berkeley.edu/~mlustig/Software.html
   
