@@ -1,9 +1,16 @@
 % CRISTINA Multi echo TQ and SQ Imaging Reco
 % 
-% data from Siemens magnetom VB17 (/T,3T)
+% data from Siemens magnetom VB17 (7T,3T)
 %
 % last update: 2019/11
 % Michaela Hösl
+
+
+
+
+% Import the provided data of two phase cycles for the phantom into the workspace:
+
+% import phantom_data_Xi0.mat phantom_data_Xi90.mat
 
 
 mykspace0_Xi90 = rawdata_Xi90;
@@ -61,4 +68,16 @@ SQFitImage_subsampled,TQFitImage_subsampled,...
 SQ_fitresult_maps,TQ_fitresult_maps,...
 SQ_NormvalImage,TQ_NormvalImage,NTEs_ex,timeVec_interpol] = fit_CRISTINA(SQ_TE_Fl,TQ_TE_Fl, NTEs_ms,EvoT0,MixTime,NCol,NLin,imask);
 
+%% Explore Results
+TQFitImage = TQFitImage./TQ_NormvalImage;    TQFitImage_subsampled = TQFitImage_subsampled./TQ_NormvalImage;
+SQFitImage = SQFitImage./SQ_NormvalImage;    SQFitImage_0TEms = SQFitImage_0TEms./SQ_NormvalImage; SQFitImage_subsampled = SQFitImage_subsampled./SQ_NormvalImage;
+TQFitImage_m = mean(TQFitImage(:,:,3:8),3);  TQ_image_total_ex(:,:,2:21) = TQ_image_total;TQ_image_total_ex(:,:,1) = 0;
 
+%as(TQFitImage_m,'ColorMap','Parula')
+%as(SQFitImage_0TEms,'ColorMap','Parula')
+
+TQFitImage_m(isnan(TQFitImage_m))=0; 
+SQFitImage_0TEms(isnan(SQFitImage_0TEms))=0;
+Ratio_Fit = TQFitImage_m./SQFitImage(:,:,1);
+Ratio_Fit(isnan(Ratio_Fit))=0; 
+as(Ratio_Fit,'ColorMap','Parula')
