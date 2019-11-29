@@ -52,8 +52,9 @@ myimage_Xi0  = fft2c(mykspace_Xi0);
 [SQ,TQ,B0,imask,SQ_TE,TQ_TE,ZQ_TE] = CRISTINA_getMQC(myimage_Xi0,myimage_Xi90,NTEs_ms);
 
 as(cat(3,TQ,SQ,(TQ./SQ).*imask), 'ColorMap', 'Parula')
-
 as(B0)
+
+
 %% Fleysher Reco using the B0 offset value of the B0 map
 [SQ_Fl,TQ_Fl, SQ_TE_Fl,TQ_TE_Fl,ZQ_TE_Fl,...
   SQXi90,TQXi90,SQXi0,TQXi0] = CRISTINA_getFleysherMQC(myimage_Xi0,myimage_Xi90,NTEs_ms,B0,EvoTimeInit);
